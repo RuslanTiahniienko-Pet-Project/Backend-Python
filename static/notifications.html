@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTradeAPI - Notifications</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c1810 0%, #3d2817 50%, #4a2f1a 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .notifications-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffab91, #ff8a65);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #ffccbc;
+            font-size: 1.1rem;
+        }
+
+        .notifications-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            height: fit-content;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            margin-bottom: 20px;
+        }
+
+        .section-card h2 {
+            color: #ffab91;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .filter-btn.active {
+            background: #ffab91;
+            color: #2c1810;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 171, 145, 0.2);
+        }
+
+        .notification-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #ffab91;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .notification-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .notification-item.unread {
+            border-left-color: #ff5722;
+            background: rgba(255, 87, 34, 0.1);
+        }
+
+        .notification-item.read {
+            opacity: 0.8;
+        }
+
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .notification-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .notification-type {
+            font-size: 0.8rem;
+            color: #ffccbc;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .notification-message {
+            color: #ffccbc;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .notification-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #ff8a65;
+        }
+
+        .notification-time {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .notification-priority {
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .priority-low {
+            background: #4caf50;
+            color: white;
+        }
+
+        .priority-medium {
+            background: #ff9800;
+            color: white;
+        }
+
+        .priority-high {
+            background: #f44336;
+            color: white;
+        }
+
+        .priority-urgent {
+            background: #e91e63;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        .notification-channels {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+
+        .channel-badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            background: rgba(255, 171, 145, 0.2);
+            color: #ffab91;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #ffab91;
+            color: #2c1810;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ffccbc;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #ffab91;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .switch {
+            position: relative;
+            width: 50px;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .switch.active {
+            background: #ffab91;
+        }
+
+        .switch::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2.5px;
+            left: 2.5px;
+            transition: all 0.3s;
+        }
+
+        .switch.active::before {
+            transform: translateX(25px);
+        }
+
+        .alert-rule {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .alert-rule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .alert-rule-name {
+            font-weight: bold;
+            color: #ffab91;
+        }
+
+        .alert-rule-details {
+            font-size: 0.9rem;
+            color: #ffccbc;
+        }
+
+        .alert-rule-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #ffab91;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #ff8a65;
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #ffccbc;
+        }
+
+        .loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffab91;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffab91;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #ffccbc;
+            font-size: 0.8rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #2c1810;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #ffab91;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+        }
+
+        @media (max-width: 1200px) {
+            .notifications-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .notifications-container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notifications-container">
+        <a href="/static/trading.html" class="back-link">← Back to Trading</a>
+        
+        <div class="header">
+            <h1>🔔 Notifications</h1>
+            <p>Real-time alerts and notification management</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading notifications...</p>
+        </div>
+
+        <div id="notifications-content" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="total-notifications">0</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="unread-notifications">0</div>
+                    <div class="stat-label">Unread</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="urgent-notifications">0</div>
+                    <div class="stat-label">Urgent</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="active-alerts">0</div>
+                    <div class="stat-label">Active Alerts</div>
+                </div>
+            </div>
+
+            <div class="notifications-grid">
+                <div class="main-content">
+                    <div class="section-card">
+                        <div class="notifications-header">
+                            <h2>📥 Your Notifications</h2>
+                            <div class="filter-buttons">
+                                <button class="filter-btn active" onclick="filterNotifications('all')">All</button>
+                                <button class="filter-btn" onclick="filterNotifications('unread')">Unread</button>
+                                <button class="filter-btn" onclick="filterNotifications('urgent')">Urgent</button>
+                                <button class="btn btn-secondary" onclick="markAllAsRead()">Mark All Read</button>
+                            </div>
+                        </div>
+                        <div id="notifications-list"></div>
+                    </div>
+                </div>
+
+                <div class="sidebar">
+                    <div class="section-card">
+                        <h2>⚙️ Settings</h2>
+                        <div class="settings-grid">
+                            <div class="toggle-switch">
+                                <label>Email</label>
+                                <div class="switch" id="email-switch" onclick="toggleSetting('email')"></div>
+                            </div>
+                            <div class="toggle-switch">
+                                <label>SMS</label>
+                                <div class="switch" id="sms-switch" onclick="toggleSetting('sms')"></div>
+                            </div>
+                            <div class="toggle-switch">
+                                <label>Push</label>
+                                <div class="switch" id="push-switch" onclick="toggleSetting('push')"></div>
+                            </div>
+                            <div class="toggle-switch">
+                                <label>Telegram</label>
+                                <div class="switch" id="telegram-switch" onclick="toggleSetting('telegram')"></div>
+                            </div>
+                            <div class="toggle-switch">
+                                <label>Slack</label>
+                                <div class="switch" id="slack-switch" onclick="toggleSetting('slack')"></div>
+                            </div>
+                            <div class="toggle-switch">
+                                <label>Webhook</label>
+                                <div class="switch" id="webhook-switch" onclick="toggleSetting('webhook')"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="webhook-url">Webhook URL</label>
+                            <input type="url" id="webhook-url" placeholder="https://your-webhook-url.com">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="telegram-token">Telegram Bot Token</label>
+                            <input type="text" id="telegram-token" placeholder="Your Telegram Bot Token">
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="saveSettings()" style="width: 100%;">
+                            Save Settings
+                        </button>
+                    </div>
+
+                    <div class="section-card">
+                        <h2>📊 Create Alert</h2>
+                        <div class="form-group">
+                            <label for="alert-name">Alert Name</label>
+                            <input type="text" id="alert-name" placeholder="My Price Alert">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="alert-symbol">Symbol</label>
+                            <select id="alert-symbol">
+                                <option value="BTCUSDT">BTC/USDT</option>
+                                <option value="ETHUSDT">ETH/USDT</option>
+                                <option value="ADAUSDT">ADA/USDT</option>
+                                <option value="DOTUSDT">DOT/USDT</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="alert-condition">Condition</label>
+                            <select id="alert-condition">
+                                <option value="above">Price Above</option>
+                                <option value="below">Price Below</option>
+                                <option value="change_up">% Change Up</option>
+                                <option value="change_down">% Change Down</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="alert-value">Value</label>
+                            <input type="number" id="alert-value" placeholder="45000" step="0.01">
+                        </div>
+                        
+                        <button class="btn btn-primary" onclick="createAlert()" style="width: 100%;">
+                            Create Alert
+                        </button>
+                    </div>
+
+                    <div class="section-card">
+                        <h2>🎯 Active Alerts</h2>
+                        <div id="alerts-list"></div>
+                    </div>
+
+                    <div class="section-card">
+                        <h2>🧪 Test Notifications</h2>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="test-email" checked>
+                                <label for="test-email">Email</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="test-push" checked>
+                                <label for="test-push">Push</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="test-sms">
+                                <label for="test-sms">SMS</label>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" onclick="testNotifications()" style="width: 100%;">
+                            Send Test
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8002/api/v1';
+        let currentToken = localStorage.getItem('auth_token');
+        let notifications = [];
+        let alerts = [];
+        let settings = {};
+        let currentFilter = 'all';
+
+        if (!currentToken) {
+            window.location.href = '/static/auth.html';
+        } else {
+            loadData();
+        }
+
+        async function loadData() {
+            try {
+                const [notificationsResponse, settingsResponse, alertsResponse] = await Promise.all([
+                    fetch(`${API_BASE}/notifications`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    }),
+                    fetch(`${API_BASE}/notifications/settings`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    }),
+                    fetch(`${API_BASE}/notifications/alerts`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    })
+                ]);
+
+                if (notificationsResponse.ok && settingsResponse.ok && alertsResponse.ok) {
+                    const notificationsData = await notificationsResponse.json();
+                    const settingsData = await settingsResponse.json();
+                    const alertsData = await alertsResponse.json();
+                    
+                    notifications = notificationsData.notifications;
+                    settings = settingsData.settings;
+                    alerts = alertsData.alerts;
+                    
+                    updateStats(notificationsData);
+                    updateNotificationsList();
+                    updateSettingsUI();
+                    updateAlertsList();
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('notifications-content').style.display = 'block';
+                } else {
+                    showError('Failed to load notifications data');
+                }
+            } catch (error) {
+                showError('Error loading data: ' + error.message);
+            }
+        }
+
+        function updateStats(data) {
+            document.getElementById('total-notifications').textContent = data.total;
+            document.getElementById('unread-notifications').textContent = data.unread_count;
+            document.getElementById('urgent-notifications').textContent = 
+                notifications.filter(n => n.priority === 'urgent').length;
+            document.getElementById('active-alerts').textContent = alerts.filter(a => a.enabled).length;
+        }
+
+        function updateNotificationsList() {
+            const notificationsList = document.getElementById('notifications-list');
+            let filteredNotifications = notifications;
+            
+            if (currentFilter === 'unread') {
+                filteredNotifications = notifications.filter(n => !n.read);
+            } else if (currentFilter === 'urgent') {
+                filteredNotifications = notifications.filter(n => n.priority === 'urgent');
+            }
+            
+            if (filteredNotifications.length === 0) {
+                notificationsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No notifications found.</p>';
+                return;
+            }
+
+            let html = '';
+            filteredNotifications.forEach(notification => {
+                const timeAgo = getTimeAgo(notification.timestamp);
+                const readClass = notification.read ? 'read' : 'unread';
+                
+                html += `
+                    <div class="notification-item ${readClass}" data-id="${notification.id}">
+                        <div class="notification-header">
+                            <div>
+                                <div class="notification-title">${notification.title}</div>
+                                <div class="notification-type">${notification.type.replace('_', ' ')}</div>
+                            </div>
+                            <div class="notification-priority priority-${notification.priority}">
+                                ${notification.priority}
+                            </div>
+                        </div>
+                        
+                        <div class="notification-message">${notification.message}</div>
+                        
+                        <div class="notification-channels">
+                            ${notification.channels.map(channel => 
+                                `<span class="channel-badge">${channel}</span>`
+                            ).join('')}
+                        </div>
+                        
+                        <div class="notification-meta">
+                            <div class="notification-time">
+                                <span>⏰ ${timeAgo}</span>
+                            </div>
+                            <div class="notification-actions">
+                                ${!notification.read ? 
+                                    `<button class="btn btn-secondary" onclick="markAsRead(${notification.id})">Mark Read</button>` : 
+                                    `<button class="btn btn-secondary" onclick="markAsUnread(${notification.id})">Mark Unread</button>`
+                                }
+                                <button class="btn btn-danger" onclick="deleteNotification(${notification.id})">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            notificationsList.innerHTML = html;
+        }
+
+        function updateSettingsUI() {
+            document.getElementById('email-switch').classList.toggle('active', settings.email_enabled);
+            document.getElementById('sms-switch').classList.toggle('active', settings.sms_enabled);
+            document.getElementById('push-switch').classList.toggle('active', settings.push_enabled);
+            document.getElementById('telegram-switch').classList.toggle('active', settings.telegram_enabled);
+            document.getElementById('slack-switch').classList.toggle('active', settings.slack_enabled);
+            document.getElementById('webhook-switch').classList.toggle('active', settings.webhook_enabled);
+            
+            document.getElementById('webhook-url').value = settings.webhook_url || '';
+            document.getElementById('telegram-token').value = settings.telegram_token || '';
+        }
+
+        function updateAlertsList() {
+            const alertsList = document.getElementById('alerts-list');
+            
+            if (alerts.length === 0) {
+                alertsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No active alerts.</p>';
+                return;
+            }
+
+            let html = '';
+            alerts.forEach(alert => {
+                html += `
+                    <div class="alert-rule">
+                        <div class="alert-rule-header">
+                            <div class="alert-rule-name">${alert.name}</div>
+                            <div class="alert-rule-actions">
+                                <button class="btn btn-danger" onclick="deleteAlert(${alert.id})">Delete</button>
+                            </div>
+                        </div>
+                        <div class="alert-rule-details">
+                            ${alert.symbol} ${alert.condition} ${alert.value}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            alertsList.innerHTML = html;
+        }
+
+        function filterNotifications(filter) {
+            currentFilter = filter;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            updateNotificationsList();
+        }
+
+        async function markAsRead(notificationId) {
+            try {
+                const response = await fetch(`${API_BASE}/notifications/${notificationId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ read: true })
+                });
+                
+                if (response.ok) {
+                    const notification = notifications.find(n => n.id === notificationId);
+                    if (notification) {
+                        notification.read = true;
+                    }
+                    updateNotificationsList();
+                    updateStats({ 
+                        total: notifications.length,
+                        unread_count: notifications.filter(n => !n.read).length 
+                    });
+                } else {
+                    showError('Failed to mark notification as read');
+                }
+            } catch (error) {
+                showError('Error updating notification: ' + error.message);
+            }
+        }
+
+        async function markAsUnread(notificationId) {
+            try {
+                const response = await fetch(`${API_BASE}/notifications/${notificationId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ read: false })
+                });
+                
+                if (response.ok) {
+                    const notification = notifications.find(n => n.id === notificationId);
+                    if (notification) {
+                        notification.read = false;
+                    }
+                    updateNotificationsList();
+                    updateStats({ 
+                        total: notifications.length,
+                        unread_count: notifications.filter(n => !n.read).length 
+                    });
+                } else {
+                    showError('Failed to mark notification as unread');
+                }
+            } catch (error) {
+                showError('Error updating notification: ' + error.message);
+            }
+        }
+
+        async function deleteNotification(notificationId) {
+            if (!confirm('Are you sure you want to delete this notification?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/notifications/${notificationId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (response.ok) {
+                    notifications = notifications.filter(n => n.id !== notificationId);
+                    updateNotificationsList();
+                    updateStats({ 
+                        total: notifications.length,
+                        unread_count: notifications.filter(n => !n.read).length 
+                    });
+                    showSuccess('Notification deleted successfully');
+                } else {
+                    showError('Failed to delete notification');
+                }
+            } catch (error) {
+                showError('Error deleting notification: ' + error.message);
+            }
+        }
+
+        async function markAllAsRead() {
+            try {
+                const response = await fetch(`${API_BASE}/notifications/mark-all-read`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (response.ok) {
+                    notifications.forEach(n => n.read = true);
+                    updateNotificationsList();
+                    updateStats({ 
+                        total: notifications.length,
+                        unread_count: 0 
+                    });
+                    showSuccess('All notifications marked as read');
+                } else {
+                    showError('Failed to mark all notifications as read');
+                }
+            } catch (error) {
+                showError('Error marking notifications as read: ' + error.message);
+            }
+        }
+
+        function toggleSetting(setting) {
+            settings[setting + '_enabled'] = !settings[setting + '_enabled'];
+            updateSettingsUI();
+        }
+
+        async function saveSettings() {
+            const settingsData = {
+                email_enabled: settings.email_enabled,
+                sms_enabled: settings.sms_enabled,
+                push_enabled: settings.push_enabled,
+                telegram_enabled: settings.telegram_enabled,
+                slack_enabled: settings.slack_enabled,
+                webhook_enabled: settings.webhook_enabled,
+                webhook_url: document.getElementById('webhook-url').value,
+                telegram_token: document.getElementById('telegram-token').value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/notifications/settings`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(settingsData)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    settings = data.settings;
+                    showSuccess('Settings saved successfully');
+                } else {
+                    showError('Failed to save settings');
+                }
+            } catch (error) {
+                showError('Error saving settings: ' + error.message);
+            }
+        }
+
+        async function createAlert() {
+            const alertData = {
+                name: document.getElementById('alert-name').value,
+                symbol: document.getElementById('alert-symbol').value,
+                condition: document.getElementById('alert-condition').value,
+                value: parseFloat(document.getElementById('alert-value').value),
+                enabled: true
+            };
+            
+            if (!alertData.name || !alertData.value) {
+                showError('Please fill in all required fields');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/notifications/alerts`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(alertData)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    alerts.push(data.alert);
+                    updateAlertsList();
+                    
+                    // Clear form
+                    document.getElementById('alert-name').value = '';
+                    document.getElementById('alert-value').value = '';
+                    
+                    showSuccess('Alert created successfully');
+                } else {
+                    showError('Failed to create alert');
+                }
+            } catch (error) {
+                showError('Error creating alert: ' + error.message);
+            }
+        }
+
+        async function deleteAlert(alertId) {
+            if (!confirm('Are you sure you want to delete this alert?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/notifications/alerts/${alertId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (response.ok) {
+                    alerts = alerts.filter(a => a.id !== alertId);
+                    updateAlertsList();
+                    showSuccess('Alert deleted successfully');
+                } else {
+                    showError('Failed to delete alert');
+                }
+            } catch (error) {
+                showError('Error deleting alert: ' + error.message);
+            }
+        }
+
+        async function testNotifications() {
+            const channels = [];
+            if (document.getElementById('test-email').checked) channels.push('email');
+            if (document.getElementById('test-push').checked) channels.push('push');
+            if (document.getElementById('test-sms').checked) channels.push('sms');
+            
+            if (channels.length === 0) {
+                showError('Please select at least one channel for testing');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/notifications/test`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(channels)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showSuccess('Test notifications sent successfully');
+                } else {
+                    showError('Failed to send test notifications');
+                }
+            } catch (error) {
+                showError('Error sending test notifications: ' + error.message);
+            }
+        }
+
+        function getTimeAgo(timestamp) {
+            const now = new Date();
+            const notificationTime = new Date(timestamp);
+            const diffMs = now - notificationTime;
+            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+            const diffDays = Math.floor(diffHours / 24);
+            
+            if (diffDays > 0) {
+                return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+            } else if (diffHours > 0) {
+                return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            } else {
+                const diffMinutes = Math.floor(diffMs / (1000 * 60));
+                return `${diffMinutes} minute${diffMinutes > 1 ? 's' : ''} ago`;
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #4caf50;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 1000;
+            `;
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+            setTimeout(() => successDiv.remove(), 3000);
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #f44336;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 1000;
+            `;
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

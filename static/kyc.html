@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTradeAPI - KYC Verification</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2332 0%, #2d3748 50%, #374151 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .kyc-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #cbd5e1;
+            font-size: 1.1rem;
+        }
+
+        .kyc-status {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .status-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-not-started {
+            background: #64748b;
+            color: white;
+        }
+
+        .status-pending {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .status-approved {
+            background: #10b981;
+            color: white;
+        }
+
+        .status-rejected {
+            background: #ef4444;
+            color: white;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            transition: width 0.3s ease;
+        }
+
+        .progress-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .step-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .step-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .step-completed {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-pending {
+            background: #64748b;
+            color: white;
+        }
+
+        .kyc-sections {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .section-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-card h2 {
+            color: #60a5fa;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .document-upload {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .document-upload:hover {
+            border-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.1);
+        }
+
+        .document-upload.dragover {
+            border-color: #60a5fa;
+            background: rgba(96, 165, 250, 0.2);
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            color: #60a5fa;
+        }
+
+        .upload-text {
+            color: #cbd5e1;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .document-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .document-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .document-type {
+            font-weight: 500;
+            color: #60a5fa;
+        }
+
+        .document-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .doc-status-pending {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .doc-status-approved {
+            background: #10b981;
+            color: white;
+        }
+
+        .doc-status-rejected {
+            background: #ef4444;
+            color: white;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+            transform: translateY(-1px);
+        }
+
+        .requirements-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+
+        .requirements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .requirement-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #60a5fa;
+        }
+
+        .requirement-name {
+            font-weight: bold;
+            color: #60a5fa;
+            margin-bottom: 8px;
+        }
+
+        .requirement-description {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+        }
+
+        .requirement-required {
+            color: #ef4444;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #60a5fa;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #cbd5e1;
+        }
+
+        .loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #60a5fa;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #1a2332;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #60a5fa;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .upload-progress {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .upload-progress-fill {
+            height: 100%;
+            background: #60a5fa;
+            transition: width 0.3s ease;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left-color: #10b981;
+            color: #10b981;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        @media (max-width: 1024px) {
+            .kyc-sections {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .kyc-container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="kyc-container">
+        <a href="/static/trading.html" class="back-link">← Back to Trading</a>
+        
+        <div class="header">
+            <h1>🔐 KYC Verification</h1>
+            <p>Complete your identity verification to unlock full trading features</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading KYC status...</p>
+        </div>
+
+        <div id="kyc-content" style="display: none;">
+            <div class="kyc-status">
+                <div class="status-header">
+                    <h2>Verification Status</h2>
+                    <div class="status-badge" id="kyc-status-badge">Not Started</div>
+                </div>
+                
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                
+                <div class="progress-steps" id="progress-steps">
+                    <!-- Steps will be populated here -->
+                </div>
+            </div>
+
+            <div class="kyc-sections">
+                <div class="section-card">
+                    <h2>👤 Personal Information</h2>
+                    <form id="personal-info-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="first-name">First Name</label>
+                                <input type="text" id="first-name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="last-name">Last Name</label>
+                                <input type="text" id="last-name" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="date-of-birth">Date of Birth</label>
+                                <input type="date" id="date-of-birth" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="nationality">Nationality</label>
+                                <select id="nationality" required>
+                                    <option value="">Select Country</option>
+                                    <option value="US">United States</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="DE">Germany</option>
+                                    <option value="FR">France</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="JP">Japan</option>
+                                    <option value="SG">Singapore</option>
+                                    <option value="NL">Netherlands</option>
+                                    <option value="CH">Switzerland</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="address">Address</label>
+                            <input type="text" id="address" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <input type="text" id="city" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="postal-code">Postal Code</label>
+                                <input type="text" id="postal-code" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="country">Country</label>
+                                <select id="country" required>
+                                    <option value="">Select Country</option>
+                                    <option value="US">United States</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="DE">Germany</option>
+                                    <option value="FR">France</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="JP">Japan</option>
+                                    <option value="SG">Singapore</option>
+                                    <option value="NL">Netherlands</option>
+                                    <option value="CH">Switzerland</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="phone">Phone Number</label>
+                                <input type="tel" id="phone" required>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                            Save Personal Information
+                        </button>
+                    </form>
+                </div>
+
+                <div class="section-card">
+                    <h2>📄 Document Upload</h2>
+                    <div id="documents-list"></div>
+                    
+                    <div class="document-upload" onclick="openDocumentModal()">
+                        <div class="upload-icon">📁</div>
+                        <div class="upload-text">Upload Document</div>
+                        <div class="upload-hint">Click to select document type</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="requirements-section">
+                <h2>📋 Verification Requirements</h2>
+                <div class="requirements-grid" id="requirements-grid">
+                    <!-- Requirements will be populated here -->
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button class="btn btn-success" onclick="submitKYC()" style="font-size: 1.1rem; padding: 15px 30px;" id="submit-btn">
+                    Submit for Verification
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Document Upload Modal -->
+    <div id="document-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Upload Document</h3>
+                <button class="close-btn" onclick="closeDocumentModal()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="document-type">Document Type</label>
+                <select id="document-type" required>
+                    <option value="">Select Document Type</option>
+                    <option value="passport">Passport</option>
+                    <option value="drivers_license">Driver's License</option>
+                    <option value="national_id">National ID</option>
+                    <option value="proof_of_address">Proof of Address</option>
+                    <option value="selfie">Selfie Verification</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="document-number">Document Number (Optional)</label>
+                <input type="text" id="document-number">
+            </div>
+            
+            <div class="form-group">
+                <label for="document-country">Issuing Country</label>
+                <select id="document-country">
+                    <option value="">Select Country</option>
+                    <option value="US">United States</option>
+                    <option value="UK">United Kingdom</option>
+                    <option value="DE">Germany</option>
+                    <option value="FR">France</option>
+                    <option value="CA">Canada</option>
+                    <option value="AU">Australia</option>
+                    <option value="JP">Japan</option>
+                    <option value="SG">Singapore</option>
+                    <option value="NL">Netherlands</option>
+                    <option value="CH">Switzerland</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="expiry-date">Expiry Date (Optional)</label>
+                <input type="date" id="expiry-date">
+            </div>
+            
+            <div class="form-group">
+                <label for="document-file">Select File</label>
+                <input type="file" id="document-file" class="file-input" accept="image/*,.pdf" onchange="handleFileSelect()">
+                <div class="document-upload" onclick="document.getElementById('document-file').click()">
+                    <div class="upload-icon">📎</div>
+                    <div class="upload-text" id="file-text">Choose file or drag here</div>
+                    <div class="upload-hint">Supported: JPG, PNG, PDF (Max 5MB)</div>
+                </div>
+                <div class="upload-progress" id="upload-progress" style="display: none;">
+                    <div class="upload-progress-fill" id="upload-progress-fill"></div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="btn btn-secondary" onclick="closeDocumentModal()" style="flex: 1;">
+                    Cancel
+                </button>
+                <button class="btn btn-primary" onclick="uploadDocument()" style="flex: 1;">
+                    Upload Document
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8002/api/v1';
+        let currentToken = localStorage.getItem('auth_token');
+        let kycStatus = {};
+        let requirements = {};
+        let selectedFile = null;
+
+        if (!currentToken) {
+            window.location.href = '/static/auth.html';
+        } else {
+            loadKYCData();
+        }
+
+        async function loadKYCData() {
+            try {
+                const [statusResponse, requirementsResponse] = await Promise.all([
+                    fetch(`${API_BASE}/kyc/status`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    }),
+                    fetch(`${API_BASE}/kyc/requirements`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    })
+                ]);
+
+                if (statusResponse.ok && requirementsResponse.ok) {
+                    kycStatus = await statusResponse.json();
+                    requirements = await requirementsResponse.json();
+                    
+                    updateKYCStatus();
+                    updatePersonalInfoForm();
+                    updateDocumentsList();
+                    updateRequirements();
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('kyc-content').style.display = 'block';
+                } else {
+                    showError('Failed to load KYC data');
+                }
+            } catch (error) {
+                showError('Error loading KYC data: ' + error.message);
+            }
+        }
+
+        function updateKYCStatus() {
+            const statusBadge = document.getElementById('kyc-status-badge');
+            const progressFill = document.getElementById('progress-fill');
+            const progressSteps = document.getElementById('progress-steps');
+            
+            // Update status badge
+            statusBadge.textContent = kycStatus.status.replace('_', ' ').toUpperCase();
+            statusBadge.className = `status-badge status-${kycStatus.status}`;
+            
+            // Update progress bar
+            const progress = kycStatus.progress || { percentage: 0, steps: [] };
+            progressFill.style.width = `${progress.percentage}%`;
+            
+            // Update progress steps
+            let stepsHtml = '';
+            progress.steps.forEach((step, index) => {
+                stepsHtml += `
+                    <div class="step-item">
+                        <div class="step-icon ${step.completed ? 'step-completed' : 'step-pending'}">
+                            ${step.completed ? '✓' : index + 1}
+                        </div>
+                        <span>${step.name}</span>
+                    </div>
+                `;
+            });
+            progressSteps.innerHTML = stepsHtml;
+        }
+
+        function updatePersonalInfoForm() {
+            const personalInfo = kycStatus.personal_info || {};
+            
+            document.getElementById('first-name').value = personalInfo.first_name || '';
+            document.getElementById('last-name').value = personalInfo.last_name || '';
+            document.getElementById('date-of-birth').value = personalInfo.date_of_birth || '';
+            document.getElementById('nationality').value = personalInfo.nationality || '';
+            document.getElementById('address').value = personalInfo.address || '';
+            document.getElementById('city').value = personalInfo.city || '';
+            document.getElementById('postal-code').value = personalInfo.postal_code || '';
+            document.getElementById('country').value = personalInfo.country || '';
+            document.getElementById('phone').value = personalInfo.phone || '';
+        }
+
+        function updateDocumentsList() {
+            const documentsList = document.getElementById('documents-list');
+            const documents = kycStatus.documents || [];
+            
+            if (documents.length === 0) {
+                documentsList.innerHTML = '<p style="text-align: center; color: #64748b; padding: 20px;">No documents uploaded yet.</p>';
+                return;
+            }
+
+            let html = '';
+            documents.forEach(doc => {
+                html += `
+                    <div class="document-item">
+                        <div class="document-info">
+                            <div class="document-type">${doc.document_type.replace('_', ' ').toUpperCase()}</div>
+                            <div class="document-status doc-status-${doc.status}">${doc.status}</div>
+                        </div>
+                        <div class="document-actions">
+                            <button class="btn btn-danger" onclick="deleteDocument(${doc.id})">Delete</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            documentsList.innerHTML = html;
+        }
+
+        function updateRequirements() {
+            const requirementsGrid = document.getElementById('requirements-grid');
+            
+            let html = '';
+            requirements.required_documents.forEach(req => {
+                html += `
+                    <div class="requirement-item">
+                        <div class="requirement-name">${req.name}</div>
+                        <div class="requirement-description">${req.description}</div>
+                        ${req.required ? '<div class="requirement-required">Required</div>' : ''}
+                    </div>
+                `;
+            });
+            
+            requirementsGrid.innerHTML = html;
+        }
+
+        document.getElementById('personal-info-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const personalInfo = {
+                first_name: document.getElementById('first-name').value,
+                last_name: document.getElementById('last-name').value,
+                date_of_birth: document.getElementById('date-of-birth').value,
+                nationality: document.getElementById('nationality').value,
+                address: document.getElementById('address').value,
+                city: document.getElementById('city').value,
+                postal_code: document.getElementById('postal-code').value,
+                country: document.getElementById('country').value,
+                phone: document.getElementById('phone').value
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/kyc/personal-info`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(personalInfo)
+                });
+                
+                if (response.ok) {
+                    showSuccess('Personal information saved successfully');
+                    loadKYCData(); // Refresh status
+                } else {
+                    showError('Failed to save personal information');
+                }
+            } catch (error) {
+                showError('Error saving personal information: ' + error.message);
+            }
+        });
+
+        function openDocumentModal() {
+            document.getElementById('document-modal').classList.add('active');
+        }
+
+        function closeDocumentModal() {
+            document.getElementById('document-modal').classList.remove('active');
+            document.getElementById('document-type').value = '';
+            document.getElementById('document-number').value = '';
+            document.getElementById('document-country').value = '';
+            document.getElementById('expiry-date').value = '';
+            document.getElementById('document-file').value = '';
+            document.getElementById('file-text').textContent = 'Choose file or drag here';
+            selectedFile = null;
+        }
+
+        function handleFileSelect() {
+            const fileInput = document.getElementById('document-file');
+            const file = fileInput.files[0];
+            
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                    showError('File size must be less than 5MB');
+                    return;
+                }
+                
+                selectedFile = file;
+                document.getElementById('file-text').textContent = file.name;
+            }
+        }
+
+        async function uploadDocument() {
+            const documentType = document.getElementById('document-type').value;
+            const documentNumber = document.getElementById('document-number').value;
+            const documentCountry = document.getElementById('document-country').value;
+            const expiryDate = document.getElementById('expiry-date').value;
+            
+            if (!documentType || !selectedFile) {
+                showError('Please select document type and file');
+                return;
+            }
+            
+            // Simulate file upload by converting to base64
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const documentData = {
+                    document_type: documentType,
+                    document_number: documentNumber,
+                    document_data: e.target.result,
+                    country: documentCountry,
+                    expiry_date: expiryDate
+                };
+                
+                try {
+                    const response = await fetch(`${API_BASE}/kyc/documents`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${currentToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(documentData)
+                    });
+                    
+                    if (response.ok) {
+                        showSuccess('Document uploaded successfully');
+                        closeDocumentModal();
+                        loadKYCData(); // Refresh status
+                    } else {
+                        showError('Failed to upload document');
+                    }
+                } catch (error) {
+                    showError('Error uploading document: ' + error.message);
+                }
+            };
+            
+            reader.readAsDataURL(selectedFile);
+        }
+
+        async function deleteDocument(documentId) {
+            if (!confirm('Are you sure you want to delete this document?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/kyc/documents/${documentId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (response.ok) {
+                    showSuccess('Document deleted successfully');
+                    loadKYCData(); // Refresh status
+                } else {
+                    showError('Failed to delete document');
+                }
+            } catch (error) {
+                showError('Error deleting document: ' + error.message);
+            }
+        }
+
+        async function submitKYC() {
+            try {
+                const response = await fetch(`${API_BASE}/kyc/submit`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    showSuccess(`KYC application submitted successfully! ${data.estimated_review_time}`);
+                    loadKYCData(); // Refresh status
+                } else {
+                    const error = await response.json();
+                    showError(`Failed to submit KYC: ${error.detail}`);
+                }
+            } catch (error) {
+                showError('Error submitting KYC: ' + error.message);
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'alert alert-success';
+            successDiv.textContent = message;
+            
+            const container = document.querySelector('.kyc-container');
+            container.insertBefore(successDiv, container.firstChild);
+            
+            setTimeout(() => successDiv.remove(), 5000);
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-error';
+            errorDiv.textContent = message;
+            
+            const container = document.querySelector('.kyc-container');
+            container.insertBefore(errorDiv, container.firstChild);
+            
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('document-modal');
+            if (event.target === modal) {
+                closeDocumentModal();
+            }
+        }
+    </script>
+</body>
+</html>

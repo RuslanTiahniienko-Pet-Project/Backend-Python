@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTradeAPI - Advanced Charts</title>
+    <script src="https://unpkg.com/lightweight-charts/dist/lightweight-charts.standalone.production.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            height: 100vh;
+        }
+
+        .sidebar {
+            background: #2d2d30;
+            padding: 20px;
+            border-right: 1px solid #3c3c3c;
+            overflow-y: auto;
+        }
+
+        .main-chart {
+            background: #1e1e1e;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-header {
+            background: #2d2d30;
+            padding: 15px 20px;
+            border-bottom: 1px solid #3c3c3c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .symbol-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .symbol-info h2 {
+            margin: 0;
+            color: #fff;
+        }
+
+        .price-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .current-price {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .price-change {
+            font-size: 1rem;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .price-change.positive {
+            background: rgba(0, 212, 170, 0.2);
+            color: #00d4aa;
+        }
+
+        .price-change.negative {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .timeframe-btn {
+            padding: 6px 12px;
+            background: #3c3c3c;
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+
+        .timeframe-btn.active {
+            background: #0084ff;
+        }
+
+        .timeframe-btn:hover {
+            background: #555;
+        }
+
+        .timeframe-btn.active:hover {
+            background: #0084ff;
+        }
+
+        .chart-wrapper {
+            height: calc(100vh - 80px);
+            padding: 20px;
+        }
+
+        .symbols-list {
+            margin-bottom: 30px;
+        }
+
+        .symbols-list h3 {
+            margin-bottom: 15px;
+            color: #aaa;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        .symbol-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #3c3c3c;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .symbol-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .symbol-item.active {
+            background: rgba(0, 132, 255, 0.1);
+            border-left: 3px solid #0084ff;
+            padding-left: 10px;
+        }
+
+        .symbol-name {
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .symbol-price {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .symbol-change {
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        .symbol-change.positive {
+            color: #00d4aa;
+        }
+
+        .symbol-change.negative {
+            color: #ff6b6b;
+        }
+
+        .indicators-panel {
+            margin-bottom: 30px;
+        }
+
+        .indicator-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #3c3c3c;
+        }
+
+        .indicator-checkbox {
+            width: 16px;
+            height: 16px;
+            appearance: none;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            border-radius: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .indicator-checkbox:checked {
+            background: #0084ff;
+            border-color: #0084ff;
+        }
+
+        .indicator-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            left: 2px;
+            top: -2px;
+            color: white;
+            font-size: 12px;
+        }
+
+        .indicator-label {
+            font-size: 12px;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .chart-settings {
+            margin-bottom: 30px;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #3c3c3c;
+        }
+
+        .setting-label {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .setting-control {
+            padding: 4px 8px;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            border-radius: 3px;
+            color: #fff;
+            font-size: 12px;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #0084ff;
+            text-decoration: none;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .volume-chart {
+            height: 150px;
+            margin-top: 20px;
+        }
+
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #aaa;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #3c3c3c;
+            border-top: 4px solid #0084ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <a href="/static/trading.html" class="back-link">← Back to Trading</a>
+
+    <div class="charts-container">
+        <div class="sidebar">
+            <div class="symbols-list">
+                <h3>Markets</h3>
+                <div id="symbols-container"></div>
+            </div>
+
+            <div class="indicators-panel">
+                <h3>Indicators</h3>
+                <div class="indicator-item">
+                    <input type="checkbox" class="indicator-checkbox" id="ma-20" onchange="toggleIndicator('ma20')">
+                    <label class="indicator-label" for="ma-20">MA 20</label>
+                </div>
+                <div class="indicator-item">
+                    <input type="checkbox" class="indicator-checkbox" id="ma-50" onchange="toggleIndicator('ma50')">
+                    <label class="indicator-label" for="ma-50">MA 50</label>
+                </div>
+                <div class="indicator-item">
+                    <input type="checkbox" class="indicator-checkbox" id="bb" onchange="toggleIndicator('bb')">
+                    <label class="indicator-label" for="bb">Bollinger Bands</label>
+                </div>
+                <div class="indicator-item">
+                    <input type="checkbox" class="indicator-checkbox" id="rsi" onchange="toggleIndicator('rsi')">
+                    <label class="indicator-label" for="rsi">RSI</label>
+                </div>
+            </div>
+
+            <div class="chart-settings">
+                <h3>Settings</h3>
+                <div class="setting-item">
+                    <span class="setting-label">Chart Type</span>
+                    <select class="setting-control" onchange="changeChartType(this.value)">
+                        <option value="candlestick">Candlestick</option>
+                        <option value="line">Line</option>
+                        <option value="area">Area</option>
+                    </select>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Theme</span>
+                    <select class="setting-control" onchange="changeTheme(this.value)">
+                        <option value="dark">Dark</option>
+                        <option value="light">Light</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-chart">
+            <div class="chart-header">
+                <div class="symbol-info">
+                    <h2 id="chart-symbol">BTC/USDT</h2>
+                    <div class="price-info">
+                        <span class="current-price" id="chart-price">$0.00</span>
+                        <span class="price-change" id="chart-change">+0.00%</span>
+                    </div>
+                </div>
+                <div class="chart-controls">
+                    <button class="timeframe-btn active" onclick="changeTimeframe('1m')">1m</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe('5m')">5m</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe('15m')">15m</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe('1h')">1h</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe('4h')">4h</button>
+                    <button class="timeframe-btn" onclick="changeTimeframe('1d')">1D</button>
+                </div>
+            </div>
+            
+            <div class="chart-wrapper">
+                <div id="price-chart"></div>
+                <div id="volume-chart" class="volume-chart"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8002/api/v1';
+        const WS_BASE = 'ws://localhost:8002/ws';
+        
+        let currentSymbol = 'BTCUSDT';
+        let currentTimeframe = '1m';
+        let priceChart = null;
+        let volumeChart = null;
+        let candlestickSeries = null;
+        let volumeSeries = null;
+        let priceWs = null;
+        let indicators = {};
+        
+        // Initialize charts
+        function initCharts() {
+            // Price chart
+            priceChart = LightweightCharts.createChart(document.getElementById('price-chart'), {
+                width: 0,
+                height: 400,
+                layout: {
+                    background: { type: 'solid', color: '#1e1e1e' },
+                    textColor: '#d1d4dc',
+                },
+                grid: {
+                    vertLines: { color: '#2B2B43' },
+                    horzLines: { color: '#2B2B43' },
+                },
+                crosshair: {
+                    mode: LightweightCharts.CrosshairMode.Normal,
+                },
+                rightPriceScale: {
+                    borderColor: '#485158',
+                },
+                timeScale: {
+                    borderColor: '#485158',
+                    timeVisible: true,
+                    secondsVisible: false,
+                },
+            });
+            
+            // Volume chart
+            volumeChart = LightweightCharts.createChart(document.getElementById('volume-chart'), {
+                width: 0,
+                height: 150,
+                layout: {
+                    background: { type: 'solid', color: '#1e1e1e' },
+                    textColor: '#d1d4dc',
+                },
+                grid: {
+                    vertLines: { color: '#2B2B43' },
+                    horzLines: { color: '#2B2B43' },
+                },
+                rightPriceScale: {
+                    borderColor: '#485158',
+                },
+                timeScale: {
+                    borderColor: '#485158',
+                    visible: false,
+                },
+            });
+            
+            // Create series
+            candlestickSeries = priceChart.addCandlestickSeries({
+                upColor: '#00d4aa',
+                downColor: '#ff6b6b',
+                borderDownColor: '#ff6b6b',
+                borderUpColor: '#00d4aa',
+                wickDownColor: '#ff6b6b',
+                wickUpColor: '#00d4aa',
+            });
+            
+            volumeSeries = volumeChart.addHistogramSeries({
+                color: '#26a69a',
+                priceFormat: {
+                    type: 'volume',
+                },
+                priceScaleId: '',
+                scaleMargins: {
+                    top: 0.8,
+                    bottom: 0,
+                },
+            });
+            
+            // Auto-resize charts
+            new ResizeObserver(() => {
+                const container = document.getElementById('price-chart');
+                if (container) {
+                    priceChart.applyOptions({ width: container.clientWidth });
+                    volumeChart.applyOptions({ width: container.clientWidth });
+                }
+            }).observe(document.getElementById('price-chart'));
+            
+            // Generate sample data
+            generateSampleData();
+        }
+        
+        function generateSampleData() {
+            const data = [];
+            const volumeData = [];
+            let price = 45000;
+            const now = Date.now();
+            
+            for (let i = 0; i < 100; i++) {
+                const time = now - (100 - i) * 60000; // 1 minute intervals
+                const open = price;
+                const change = (Math.random() - 0.5) * 200;
+                const close = open + change;
+                const high = Math.max(open, close) + Math.random() * 50;
+                const low = Math.min(open, close) - Math.random() * 50;
+                const volume = Math.random() * 1000 + 500;
+                
+                data.push({
+                    time: time / 1000,
+                    open: open,
+                    high: high,
+                    low: low,
+                    close: close
+                });
+                
+                volumeData.push({
+                    time: time / 1000,
+                    value: volume,
+                    color: change > 0 ? '#00d4aa' : '#ff6b6b'
+                });
+                
+                price = close;
+            }
+            
+            candlestickSeries.setData(data);
+            volumeSeries.setData(volumeData);
+        }
+        
+        async function loadSymbols() {
+            try {
+                const response = await fetch(`${API_BASE}/market/tickers`);
+                const data = await response.json();
+                updateSymbolsList(data);
+            } catch (error) {
+                console.error('Failed to load symbols:', error);
+            }
+        }
+        
+        function updateSymbolsList(symbols) {
+            const container = document.getElementById('symbols-container');
+            let html = '';
+            
+            symbols.forEach(symbol => {
+                const change = parseFloat(symbol.change_24h);
+                const changeClass = change >= 0 ? 'positive' : 'negative';
+                const isActive = symbol.symbol === currentSymbol;
+                
+                html += `
+                    <div class="symbol-item ${isActive ? 'active' : ''}" onclick="selectSymbol('${symbol.symbol}')">
+                        <div>
+                            <div class="symbol-name">${symbol.symbol}</div>
+                            <div class="symbol-price">$${parseFloat(symbol.price).toFixed(2)}</div>
+                        </div>
+                        <div class="symbol-change ${changeClass}">
+                            ${change > 0 ? '+' : ''}${change.toFixed(2)}%
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function selectSymbol(symbol) {
+            currentSymbol = symbol;
+            document.getElementById('chart-symbol').textContent = symbol;
+            
+            // Update active symbol in list
+            document.querySelectorAll('.symbol-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.closest('.symbol-item').classList.add('active');
+            
+            // Reconnect WebSocket
+            connectPriceWebSocket();
+            
+            // Generate new sample data for the selected symbol
+            generateSampleData();
+        }
+        
+        function connectPriceWebSocket() {
+            if (priceWs) priceWs.close();
+            
+            priceWs = new WebSocket(`${WS_BASE}/prices/${currentSymbol}`);
+            priceWs.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                updateCurrentPrice(data);
+            };
+        }
+        
+        function updateCurrentPrice(data) {
+            document.getElementById('chart-price').textContent = `$${parseFloat(data.price).toFixed(2)}`;
+            
+            const changeElement = document.getElementById('chart-change');
+            const change = parseFloat(data.change_24h || 0);
+            changeElement.textContent = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
+            changeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
+        }
+        
+        function changeTimeframe(timeframe) {
+            currentTimeframe = timeframe;
+            
+            document.querySelectorAll('.timeframe-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Generate new data for the timeframe
+            generateSampleData();
+        }
+        
+        function toggleIndicator(indicator) {
+            const checkbox = document.getElementById(indicator.replace('20', '-20').replace('50', '-50'));
+            
+            if (checkbox.checked) {
+                addIndicator(indicator);
+            } else {
+                removeIndicator(indicator);
+            }
+        }
+        
+        function addIndicator(indicator) {
+            switch(indicator) {
+                case 'ma20':
+                    indicators.ma20 = priceChart.addLineSeries({
+                        color: '#2196F3',
+                        lineWidth: 2,
+                    });
+                    // Add MA20 data (simplified)
+                    const ma20Data = generateMAData(20);
+                    indicators.ma20.setData(ma20Data);
+                    break;
+                    
+                case 'ma50':
+                    indicators.ma50 = priceChart.addLineSeries({
+                        color: '#FF9800',
+                        lineWidth: 2,
+                    });
+                    // Add MA50 data (simplified)
+                    const ma50Data = generateMAData(50);
+                    indicators.ma50.setData(ma50Data);
+                    break;
+                    
+                case 'bb':
+                    // Bollinger Bands implementation
+                    indicators.bbUpper = priceChart.addLineSeries({
+                        color: '#9C27B0',
+                        lineWidth: 1,
+                    });
+                    indicators.bbLower = priceChart.addLineSeries({
+                        color: '#9C27B0',
+                        lineWidth: 1,
+                    });
+                    break;
+                    
+                case 'rsi':
+                    // RSI would typically be in a separate pane
+                    console.log('RSI indicator added');
+                    break;
+            }
+        }
+        
+        function removeIndicator(indicator) {
+            if (indicators[indicator]) {
+                priceChart.removeSeries(indicators[indicator]);
+                delete indicators[indicator];
+            }
+            
+            // Handle compound indicators
+            if (indicator === 'bb') {
+                if (indicators.bbUpper) priceChart.removeSeries(indicators.bbUpper);
+                if (indicators.bbLower) priceChart.removeSeries(indicators.bbLower);
+                delete indicators.bbUpper;
+                delete indicators.bbLower;
+            }
+        }
+        
+        function generateMAData(period) {
+            // Simplified MA calculation
+            const data = [];
+            const now = Date.now();
+            let price = 45000;
+            
+            for (let i = 0; i < 100; i++) {
+                const time = now - (100 - i) * 60000;
+                price += (Math.random() - 0.5) * 200;
+                
+                data.push({
+                    time: time / 1000,
+                    value: price
+                });
+            }
+            
+            return data;
+        }
+        
+        function changeChartType(type) {
+            // This would switch between candlestick, line, and area charts
+            console.log('Chart type changed to:', type);
+        }
+        
+        function changeTheme(theme) {
+            // This would switch between dark and light themes
+            console.log('Theme changed to:', theme);
+        }
+        
+        // Initialize everything
+        window.addEventListener('load', function() {
+            initCharts();
+            loadSymbols();
+            connectPriceWebSocket();
+        });
+        
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', function() {
+            if (priceWs) priceWs.close();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTradeAPI - Risk Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .risk-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .risk-overview {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .risk-score-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .risk-score {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .risk-score.low {
+            color: #28a745;
+        }
+
+        .risk-score.medium {
+            color: #ffc107;
+        }
+
+        .risk-score.high {
+            color: #dc3545;
+        }
+
+        .risk-level {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .risk-description {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .risk-metrics {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .risk-metrics h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .metric-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border-left: 4px solid #007bff;
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .alerts-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .alerts-header h2 {
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .alert-count {
+            background: #dc3545;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .alert-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border-left: 4px solid #007bff;
+        }
+
+        .alert-item.high {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        .alert-item.medium {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+        }
+
+        .alert-item.low {
+            background: #d4edda;
+            border-left-color: #28a745;
+        }
+
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        .alert-icon.high {
+            background: #dc3545;
+            color: white;
+        }
+
+        .alert-icon.medium {
+            background: #ffc107;
+            color: white;
+        }
+
+        .alert-icon.low {
+            background: #28a745;
+            color: white;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-message {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .alert-time {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .alert-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .limits-section {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .limits-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .limits-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .form-group input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .position-monitor {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .position-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .position-table th,
+        .position-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .position-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .position-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-safe {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+
+        .loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f3f3f3;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #ffc107, #dc3545);
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 1024px) {
+            .risk-overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .metric-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .risk-container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .risk-score {
+                font-size: 3rem;
+            }
+            
+            .limits-form {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="risk-container">
+        <a href="/static/trading.html" class="back-link">← Back to Trading</a>
+        
+        <div class="header">
+            <h1>⚠️ Risk Management Dashboard</h1>
+            <p>Monitor and control your trading risks in real-time</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading risk assessment...</p>
+        </div>
+
+        <div id="risk-content" style="display: none;">
+            <div class="risk-overview">
+                <div class="risk-score-card">
+                    <div class="risk-score" id="risk-score">0</div>
+                    <div class="risk-level" id="risk-level">LOW</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="risk-progress"></div>
+                    </div>
+                    <div class="risk-description" id="risk-description">
+                        Your current risk exposure is within acceptable limits.
+                    </div>
+                </div>
+
+                <div class="risk-metrics">
+                    <h2>Risk Metrics</h2>
+                    <div class="metric-grid" id="metrics-grid">
+                        <!-- Metrics will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="alerts-section">
+                <div class="alerts-header">
+                    <h2>Risk Alerts</h2>
+                    <span class="alert-count" id="alert-count">0</span>
+                </div>
+                <div id="alerts-list">
+                    <!-- Alerts will be populated here -->
+                </div>
+            </div>
+
+            <div class="limits-section">
+                <div class="limits-header">
+                    <h2>Risk Limits Configuration</h2>
+                    <button class="btn btn-primary" onclick="saveLimits()">Save Limits</button>
+                </div>
+                <form class="limits-form" id="limits-form">
+                    <div class="form-group">
+                        <label for="max-position">Max Position Size ($)</label>
+                        <input type="number" id="max-position" value="50000" min="1000" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label for="max-leverage">Max Leverage</label>
+                        <input type="number" id="max-leverage" value="5.0" min="1.0" max="20.0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="max-daily-loss">Max Daily Loss ($)</label>
+                        <input type="number" id="max-daily-loss" value="5000" min="100" step="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="stop-loss">Stop Loss (%)</label>
+                        <input type="number" id="stop-loss" value="5.0" min="1.0" max="50.0" step="0.5">
+                    </div>
+                    <div class="form-group">
+                        <label for="take-profit">Take Profit (%)</label>
+                        <input type="number" id="take-profit" value="10.0" min="1.0" max="100.0" step="0.5">
+                    </div>
+                </form>
+            </div>
+
+            <div class="position-monitor">
+                <h2>Position Monitor</h2>
+                <table class="position-table">
+                    <thead>
+                        <tr>
+                            <th>Asset</th>
+                            <th>Position Size</th>
+                            <th>Current P&L</th>
+                            <th>Risk Level</th>
+                            <th>Margin Usage</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="positions-table">
+                        <!-- Positions will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8002/api/v1';
+        let currentToken = localStorage.getItem('auth_token');
+
+        if (!currentToken) {
+            window.location.href = '/static/auth.html';
+        } else {
+            loadRiskData();
+        }
+
+        async function loadRiskData() {
+            try {
+                const [assessmentResponse, alertsResponse] = await Promise.all([
+                    fetch(`${API_BASE}/risk/assessment`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    }),
+                    fetch(`${API_BASE}/risk/alerts`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    })
+                ]);
+
+                if (assessmentResponse.ok && alertsResponse.ok) {
+                    const assessmentData = await assessmentResponse.json();
+                    const alertsData = await alertsResponse.json();
+                    
+                    updateRiskOverview(assessmentData);
+                    updateRiskMetrics(assessmentData);
+                    updateAlerts(alertsData.alerts);
+                    updatePositionMonitor(assessmentData);
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('risk-content').style.display = 'block';
+                } else {
+                    showError('Failed to load risk data');
+                }
+            } catch (error) {
+                showError('Error loading risk data: ' + error.message);
+            }
+        }
+
+        function updateRiskOverview(data) {
+            const riskScore = document.getElementById('risk-score');
+            const riskLevel = document.getElementById('risk-level');
+            const riskProgress = document.getElementById('risk-progress');
+            const riskDescription = document.getElementById('risk-description');
+            
+            riskScore.textContent = data.risk_score;
+            riskLevel.textContent = data.risk_level;
+            
+            const level = data.risk_level.toLowerCase();
+            riskScore.className = `risk-score ${level}`;
+            riskLevel.className = `risk-level ${level}`;
+            
+            riskProgress.style.width = `${data.risk_score}%`;
+            
+            const descriptions = {
+                'LOW': 'Your current risk exposure is within acceptable limits. Continue monitoring your positions.',
+                'MEDIUM': 'Your risk exposure is moderate. Consider reviewing your position sizes and diversification.',
+                'HIGH': 'Your risk exposure is high. Immediate action recommended to reduce risk.'
+            };
+            
+            riskDescription.textContent = descriptions[data.risk_level] || descriptions['LOW'];
+        }
+
+        function updateRiskMetrics(data) {
+            const metricsGrid = document.getElementById('metrics-grid');
+            
+            const metrics = [
+                { label: 'Concentration Risk', value: `${data.concentration_risk}%` },
+                { label: 'Leverage Ratio', value: `${data.leverage_ratio}x` },
+                { label: 'Daily VaR', value: `$${data.daily_var.toLocaleString()}` },
+                { label: 'Max Drawdown', value: `${data.max_drawdown}%` },
+                { label: 'Margin Usage', value: `${data.margin_usage}%` },
+                { label: 'Available Margin', value: `$${data.available_margin.toLocaleString()}` }
+            ];
+            
+            let html = '';
+            metrics.forEach(metric => {
+                html += `
+                    <div class="metric-item">
+                        <div class="metric-value">${metric.value}</div>
+                        <div class="metric-label">${metric.label}</div>
+                    </div>
+                `;
+            });
+            
+            metricsGrid.innerHTML = html;
+        }
+
+        function updateAlerts(alerts) {
+            const alertsList = document.getElementById('alerts-list');
+            const alertCount = document.getElementById('alert-count');
+            
+            const activeAlerts = alerts.filter(alert => !alert.resolved);
+            alertCount.textContent = activeAlerts.length;
+            
+            if (activeAlerts.length === 0) {
+                alertsList.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No active alerts</p>';
+                return;
+            }
+            
+            let html = '';
+            activeAlerts.forEach(alert => {
+                html += `
+                    <div class="alert-item ${alert.severity}">
+                        <div class="alert-icon ${alert.severity}">
+                            ${alert.severity === 'high' ? '⚠️' : alert.severity === 'medium' ? '⚡' : 'ℹ️'}
+                        </div>
+                        <div class="alert-content">
+                            <div class="alert-message">${alert.message}</div>
+                            <div class="alert-time">${new Date(alert.timestamp).toLocaleString()}</div>
+                        </div>
+                        <div class="alert-actions">
+                            <button class="btn btn-success" onclick="resolveAlert(${alert.id})">Resolve</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            alertsList.innerHTML = html;
+        }
+
+        function updatePositionMonitor(data) {
+            const positionsTable = document.getElementById('positions-table');
+            
+            // Sample position data
+            const positions = [
+                { asset: 'BTC', size: '$25,000', pnl: '+$1,250', risk: 'MEDIUM', margin: '45%' },
+                { asset: 'ETH', size: '$15,000', pnl: '-$500', risk: 'LOW', margin: '25%' },
+                { asset: 'ADA', size: '$5,000', pnl: '+$125', risk: 'LOW', margin: '15%' }
+            ];
+            
+            let html = '';
+            positions.forEach(position => {
+                const riskClass = position.risk.toLowerCase();
+                const pnlClass = position.pnl.includes('+') ? 'positive' : 'negative';
+                
+                html += `
+                    <tr>
+                        <td>${position.asset}</td>
+                        <td>${position.size}</td>
+                        <td style="color: ${position.pnl.includes('+') ? '#28a745' : '#dc3545'}">${position.pnl}</td>
+                        <td><span class="status-badge status-${riskClass === 'high' ? 'danger' : riskClass === 'medium' ? 'warning' : 'safe'}">${position.risk}</span></td>
+                        <td>${position.margin}</td>
+                        <td>
+                            <button class="btn btn-danger" onclick="closePosition('${position.asset}')">Close</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            positionsTable.innerHTML = html;
+        }
+
+        async function resolveAlert(alertId) {
+            try {
+                const response = await fetch(`${API_BASE}/risk/alerts/${alertId}/resolve`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (response.ok) {
+                    showSuccess('Alert resolved successfully');
+                    loadRiskData(); // Reload data
+                } else {
+                    showError('Failed to resolve alert');
+                }
+            } catch (error) {
+                showError('Error resolving alert: ' + error.message);
+            }
+        }
+
+        async function saveLimits() {
+            const limits = {
+                max_position_size: parseFloat(document.getElementById('max-position').value),
+                max_leverage: parseFloat(document.getElementById('max-leverage').value),
+                max_daily_loss: parseFloat(document.getElementById('max-daily-loss').value),
+                stop_loss_percentage: parseFloat(document.getElementById('stop-loss').value),
+                take_profit_percentage: parseFloat(document.getElementById('take-profit').value)
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE}/risk/limits`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(limits)
+                });
+                
+                if (response.ok) {
+                    showSuccess('Risk limits updated successfully');
+                } else {
+                    showError('Failed to update risk limits');
+                }
+            } catch (error) {
+                showError('Error updating limits: ' + error.message);
+            }
+        }
+
+        function closePosition(asset) {
+            if (confirm(`Are you sure you want to close your ${asset} position?`)) {
+                showSuccess(`${asset} position closed successfully`);
+                // In real app, this would make API call to close position
+                loadRiskData();
+            }
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #28a745;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 1000;
+            `;
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+            setTimeout(() => successDiv.remove(), 3000);
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: #dc3545;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 1000;
+            `;
+            errorDiv.textContent = message;
+            document.body.appendChild(errorDiv);
+            setTimeout(() => errorDiv.remove(), 5000);
+        }
+    </script>
+</body>
+</html>

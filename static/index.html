@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTradeAPI - Monitoring Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>SecureTradeAPI</h1>
+            <p>Real-time Trading Platform Monitoring</p>
+        </header>
+
+        <div class="dashboard">
+            <div class="card">
+                <h2>System Status</h2>
+                <div id="system-status">
+                    <div class="status-item">
+                        <span class="status-label">API Status:</span>
+                        <span id="api-status" class="status-value">Checking...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Database:</span>
+                        <span id="db-status" class="status-value">Checking...</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="status-label">Redis:</span>
+                        <span id="redis-status" class="status-value">Checking...</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Market Data</h2>
+                <div id="market-data">
+                    <div class="market-item">
+                        <span class="symbol">BTC/USDT</span>
+                        <span id="btc-price" class="price">$0.00</span>
+                        <span id="btc-change" class="change">0.00%</span>
+                    </div>
+                    <div class="market-item">
+                        <span class="symbol">ETH/USDT</span>
+                        <span id="eth-price" class="price">$0.00</span>
+                        <span id="eth-change" class="change">0.00%</span>
+                    </div>
+                    <div class="market-item">
+                        <span class="symbol">ADA/USDT</span>
+                        <span id="ada-price" class="price">$0.00</span>
+                        <span id="ada-change" class="change">0.00%</span>
+                    </div>
+                    <div class="market-item">
+                        <span class="symbol">DOT/USDT</span>
+                        <span id="dot-price" class="price">$0.00</span>
+                        <span id="dot-change" class="change">0.00%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Trading Activity</h2>
+                <div id="trading-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Active Orders:</span>
+                        <span id="active-orders" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Trades Today:</span>
+                        <span id="trades-today" class="stat-value">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Total Volume:</span>
+                        <span id="total-volume" class="stat-value">$0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Real-time Price Chart</h2>
+                <div id="price-chart">
+                    <canvas id="chart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>System Metrics</h2>
+                <div id="metrics">
+                    <div class="metric-item">
+                        <span class="metric-label">CPU Usage:</span>
+                        <span id="cpu-usage" class="metric-value">0%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Memory Usage:</span>
+                        <span id="memory-usage" class="metric-value">0%</span>
+                    </div>
+                    <div class="metric-item">
+                        <span class="metric-label">Response Time:</span>
+                        <span id="response-time" class="metric-value">0ms</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>API Endpoints</h2>
+                <div id="endpoints">
+                    <div class="endpoint-item">
+                        <span class="endpoint-method">GET</span>
+                        <span class="endpoint-path">/api/v1/market/tickers</span>
+                        <span class="endpoint-status">✓</span>
+                    </div>
+                    <div class="endpoint-item">
+                        <span class="endpoint-method">POST</span>
+                        <span class="endpoint-path">/api/v1/trading/orders</span>
+                        <span class="endpoint-status">✓</span>
+                    </div>
+                    <div class="endpoint-item">
+                        <span class="endpoint-method">GET</span>
+                        <span class="endpoint-path">/api/v1/wallet/balances</span>
+                        <span class="endpoint-status">✓</span>
+                    </div>
+                    <div class="endpoint-item">
+                        <span class="endpoint-method">WebSocket</span>
+                        <span class="endpoint-path">/ws/prices/{symbol}</span>
+                        <span class="endpoint-status">✓</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTradeAPI - Portfolio Analytics</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .analytics-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #fff;
+        }
+
+        .header p {
+            color: #b3c6ff;
+            font-size: 1.1rem;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .summary-card h3 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            color: #4fc3f7;
+        }
+
+        .summary-card p {
+            color: #b3c6ff;
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+
+        .change-indicator {
+            font-size: 1.1rem;
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+
+        .positive {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4caf50;
+        }
+
+        .negative {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .chart-section h2 {
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 1.4rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+
+        .portfolio-breakdown {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .asset-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .asset-item:last-child {
+            border-bottom: none;
+        }
+
+        .asset-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .asset-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #4fc3f7, #29b6f6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .asset-details h4 {
+            margin: 0;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
+        .asset-details p {
+            margin: 5px 0 0 0;
+            color: #b3c6ff;
+            font-size: 0.9rem;
+        }
+
+        .asset-stats {
+            text-align: right;
+        }
+
+        .asset-stats .value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .asset-stats .percentage {
+            font-size: 0.9rem;
+            color: #b3c6ff;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .metrics-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .metrics-card h3 {
+            margin-bottom: 20px;
+            color: #fff;
+            font-size: 1.3rem;
+        }
+
+        .metric-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .metric-item:last-child {
+            border-bottom: none;
+        }
+
+        .metric-label {
+            color: #b3c6ff;
+            font-size: 0.95rem;
+        }
+
+        .metric-value {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .performance-chart {
+            height: 300px;
+        }
+
+        .sector-chart {
+            height: 250px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #4fc3f7;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .back-link:hover {
+            color: #29b6f6;
+            text-decoration: underline;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 50px;
+            color: #b3c6ff;
+        }
+
+        .loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #4fc3f7;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 1px solid rgba(244, 67, 54, 0.3);
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) {
+            .analytics-container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .summary-card {
+                padding: 20px;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="analytics-container">
+        <a href="/static/trading.html" class="back-link">← Back to Trading</a>
+        
+        <div class="header">
+            <h1>📊 Portfolio Analytics</h1>
+            <p>Comprehensive analysis of your trading performance</p>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Loading portfolio data...</p>
+        </div>
+
+        <div id="analytics-content" style="display: none;">
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h3 id="total-value">$0.00</h3>
+                    <p>Total Portfolio Value</p>
+                    <div class="change-indicator" id="daily-change">+0.00%</div>
+                </div>
+                
+                <div class="summary-card">
+                    <h3 id="total-pnl">$0.00</h3>
+                    <p>Total P&L</p>
+                    <div class="change-indicator" id="monthly-change">+0.00%</div>
+                </div>
+                
+                <div class="summary-card">
+                    <h3 id="win-rate">0%</h3>
+                    <p>Win Rate</p>
+                    <div class="change-indicator" id="total-trades">0 trades</div>
+                </div>
+                
+                <div class="summary-card">
+                    <h3 id="sharpe-ratio">0.00</h3>
+                    <p>Sharpe Ratio</p>
+                    <div class="change-indicator" id="profit-factor">PF: 0.00</div>
+                </div>
+            </div>
+
+            <div class="main-content">
+                <div class="chart-section">
+                    <h2>Portfolio Performance</h2>
+                    <div class="chart-container">
+                        <canvas id="performance-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="portfolio-breakdown">
+                    <h2>Asset Allocation</h2>
+                    <div id="assets-list"></div>
+                </div>
+            </div>
+
+            <div class="metrics-grid">
+                <div class="metrics-card">
+                    <h3>📈 Performance Metrics</h3>
+                    <div id="performance-metrics"></div>
+                </div>
+
+                <div class="metrics-card">
+                    <h3>⚠️ Risk Metrics</h3>
+                    <div id="risk-metrics"></div>
+                </div>
+
+                <div class="metrics-card">
+                    <h3>📊 Trading Statistics</h3>
+                    <div id="trading-stats"></div>
+                </div>
+
+                <div class="chart-section">
+                    <h2>Sector Allocation</h2>
+                    <div class="chart-container sector-chart">
+                        <canvas id="sector-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8002/api/v1';
+        let currentToken = localStorage.getItem('auth_token');
+        let performanceChart = null;
+        let sectorChart = null;
+
+        if (!currentToken) {
+            window.location.href = '/static/auth.html';
+        } else {
+            loadAnalytics();
+        }
+
+        async function loadAnalytics() {
+            try {
+                const [portfolioResponse, performanceResponse] = await Promise.all([
+                    fetch(`${API_BASE}/analytics/portfolio`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    }),
+                    fetch(`${API_BASE}/analytics/performance`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    })
+                ]);
+
+                if (portfolioResponse.ok && performanceResponse.ok) {
+                    const portfolioData = await portfolioResponse.json();
+                    const performanceData = await performanceResponse.json();
+                    
+                    updateSummaryCards(portfolioData);
+                    updateAssetsList(portfolioData.portfolio_breakdown);
+                    updateMetrics(portfolioData);
+                    createPerformanceChart(performanceData.performance_history);
+                    createSectorChart(performanceData.sector_allocation);
+                    
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('analytics-content').style.display = 'block';
+                } else {
+                    showError('Failed to load analytics data');
+                }
+            } catch (error) {
+                showError('Error loading analytics: ' + error.message);
+            }
+        }
+
+        function updateSummaryCards(data) {
+            document.getElementById('total-value').textContent = `$${data.total_portfolio_value.toLocaleString()}`;
+            document.getElementById('total-pnl').textContent = `$${data.performance.total_pnl.toLocaleString()}`;
+            document.getElementById('win-rate').textContent = `${data.statistics.win_rate}%`;
+            document.getElementById('sharpe-ratio').textContent = data.statistics.sharpe_ratio;
+            
+            const dailyChange = parseFloat(data.performance.daily_change);
+            const dailyChangeEl = document.getElementById('daily-change');
+            dailyChangeEl.textContent = data.performance.daily_change;
+            dailyChangeEl.className = `change-indicator ${dailyChange >= 0 ? 'positive' : 'negative'}`;
+            
+            const monthlyChange = parseFloat(data.performance.monthly_change);
+            const monthlyChangeEl = document.getElementById('monthly-change');
+            monthlyChangeEl.textContent = data.performance.monthly_change;
+            monthlyChangeEl.className = `change-indicator ${monthlyChange >= 0 ? 'positive' : 'negative'}`;
+            
+            document.getElementById('total-trades').textContent = `${data.statistics.total_trades} trades`;
+            document.getElementById('profit-factor').textContent = `PF: ${data.statistics.profit_factor}`;
+        }
+
+        function updateAssetsList(portfolio) {
+            const assetsList = document.getElementById('assets-list');
+            let html = '';
+            
+            Object.entries(portfolio)
+                .sort(([,a], [,b]) => b.value - a.value)
+                .forEach(([currency, asset]) => {
+                    if (asset.value > 0) {
+                        const changeClass = asset.change_24h >= 0 ? 'positive' : 'negative';
+                        html += `
+                            <div class="asset-item">
+                                <div class="asset-info">
+                                    <div class="asset-icon">${currency.substring(0, 3)}</div>
+                                    <div class="asset-details">
+                                        <h4>${currency}</h4>
+                                        <p>${asset.balance.toFixed(4)} ${currency}</p>
+                                    </div>
+                                </div>
+                                <div class="asset-stats">
+                                    <div class="value">$${asset.value.toLocaleString()}</div>
+                                    <div class="percentage">${asset.percentage}%</div>
+                                    <div class="change-indicator ${changeClass}">
+                                        ${asset.change_24h > 0 ? '+' : ''}${asset.change_24h.toFixed(2)}%
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                });
+            
+            assetsList.innerHTML = html;
+        }
+
+        function updateMetrics(data) {
+            // Performance Metrics
+            const performanceMetrics = document.getElementById('performance-metrics');
+            performanceMetrics.innerHTML = `
+                <div class="metric-item">
+                    <span class="metric-label">Daily Change</span>
+                    <span class="metric-value">${data.performance.daily_change}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Weekly Change</span>
+                    <span class="metric-value">${data.performance.weekly_change}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Monthly Change</span>
+                    <span class="metric-value">${data.performance.monthly_change}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Yearly Change</span>
+                    <span class="metric-value">${data.performance.yearly_change}</span>
+                </div>
+            `;
+
+            // Risk Metrics
+            const riskMetrics = document.getElementById('risk-metrics');
+            riskMetrics.innerHTML = `
+                <div class="metric-item">
+                    <span class="metric-label">VaR (95%)</span>
+                    <span class="metric-value">$${data.risk_metrics.var_95.toLocaleString()}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Max Drawdown</span>
+                    <span class="metric-value">${data.risk_metrics.max_drawdown}%</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Volatility</span>
+                    <span class="metric-value">${data.risk_metrics.volatility}%</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Beta</span>
+                    <span class="metric-value">${data.risk_metrics.beta}</span>
+                </div>
+            `;
+
+            // Trading Statistics
+            const tradingStats = document.getElementById('trading-stats');
+            tradingStats.innerHTML = `
+                <div class="metric-item">
+                    <span class="metric-label">Total Trades</span>
+                    <span class="metric-value">${data.statistics.total_trades}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Winning Trades</span>
+                    <span class="metric-value">${data.statistics.winning_trades}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Average Profit</span>
+                    <span class="metric-value">$${data.statistics.avg_profit}</span>
+                </div>
+                <div class="metric-item">
+                    <span class="metric-label">Average Loss</span>
+                    <span class="metric-value">$${data.statistics.avg_loss}</span>
+                </div>
+            `;
+        }
+
+        function createPerformanceChart(data) {
+            const ctx = document.getElementById('performance-chart').getContext('2d');
+            
+            if (performanceChart) {
+                performanceChart.destroy();
+            }
+            
+            performanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.date),
+                    datasets: [{
+                        label: 'Portfolio Value',
+                        data: data.map(d => d.portfolio_value),
+                        borderColor: '#4fc3f7',
+                        backgroundColor: 'rgba(79, 195, 247, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#fff'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: {
+                                color: '#b3c6ff'
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: '#b3c6ff',
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function createSectorChart(data) {
+            const ctx = document.getElementById('sector-chart').getContext('2d');
+            
+            if (sectorChart) {
+                sectorChart.destroy();
+            }
+            
+            sectorChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(data),
+                    datasets: [{
+                        data: Object.values(data),
+                        backgroundColor: [
+                            '#4fc3f7',
+                            '#29b6f6',
+                            '#03a9f4',
+                            '#039be5',
+                            '#0288d1',
+                            '#0277bd'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#fff',
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+            document.querySelector('.analytics-container').appendChild(errorDiv);
+        }
+    </script>
+</body>
+</html>

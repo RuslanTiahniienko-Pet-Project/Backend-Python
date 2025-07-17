@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureTradeAPI - Trading Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .trading-container {
+            display: grid;
+            grid-template-columns: 300px 1fr 300px;
+            height: 100vh;
+            gap: 10px;
+            padding: 10px;
+        }
+
+        .sidebar {
+            background: #2d2d30;
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .main-content {
+            background: #2d2d30;
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .chart-container {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            flex: 1;
+            position: relative;
+        }
+
+        .orderbook-container {
+            background: #1e1e1e;
+            border-radius: 8px;
+            padding: 15px;
+            height: 400px;
+            overflow-y: auto;
+        }
+
+        .symbol-selector {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .symbol-btn {
+            padding: 8px 16px;
+            background: #3c3c3c;
+            border: none;
+            border-radius: 5px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .symbol-btn.active {
+            background: #0084ff;
+        }
+
+        .symbol-btn:hover {
+            background: #555;
+        }
+
+        .price-ticker {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #3c3c3c;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .price-info h2 {
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .price-change {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .price-change.positive {
+            color: #00d4aa;
+        }
+
+        .price-change.negative {
+            color: #ff6b6b;
+        }
+
+        .orderbook {
+            height: 100%;
+        }
+
+        .orderbook-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .orderbook-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .orderbook-table th,
+        .orderbook-table td {
+            padding: 5px 8px;
+            text-align: right;
+            font-size: 12px;
+            border-bottom: 1px solid #3c3c3c;
+        }
+
+        .orderbook-table th {
+            background: #3c3c3c;
+            color: #aaa;
+        }
+
+        .bid-row {
+            background: rgba(0, 212, 170, 0.1);
+        }
+
+        .ask-row {
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .bid-price {
+            color: #00d4aa;
+        }
+
+        .ask-price {
+            color: #ff6b6b;
+        }
+
+        .spread-info {
+            text-align: center;
+            padding: 10px;
+            background: #3c3c3c;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+
+        .trading-form {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #aaa;
+            font-size: 12px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            background: #3c3c3c;
+            border: 1px solid #555;
+            border-radius: 4px;
+            color: #fff;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .btn-buy {
+            background: #00d4aa;
+            color: #fff;
+        }
+
+        .btn-sell {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .positions-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .positions-table th,
+        .positions-table td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #3c3c3c;
+            font-size: 12px;
+        }
+
+        .positions-table th {
+            background: #3c3c3c;
+            color: #aaa;
+        }
+
+        .status-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .status-filled {
+            background: #00d4aa;
+            color: #fff;
+        }
+
+        .status-pending {
+            background: #ffa500;
+            color: #fff;
+        }
+
+        .chart-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            background: #3c3c3c;
+            border-radius: 8px;
+            color: #aaa;
+            font-size: 18px;
+        }
+
+        .back-link {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #0084ff;
+            text-decoration: none;
+            font-weight: 500;
+            z-index: 1000;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+
+        .login-prompt {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: #2d2d30;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            margin-bottom: 20px;
+            color: #0084ff;
+        }
+
+        .login-card a {
+            color: #0084ff;
+            text-decoration: none;
+            font-weight: 500;
+            margin: 0 10px;
+        }
+
+        .login-card a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 1200px) {
+            .trading-container {
+                grid-template-columns: 250px 1fr 250px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .trading-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="back-link">← Back to Main</a>
+
+    <div id="login-prompt" class="login-prompt">
+        <div class="login-card">
+            <h2>🔐 Login Required</h2>
+            <p>Please log in to access the trading dashboard.</p>
+            <div style="margin-top: 20px;">
+                <a href="/static/auth.html">Login</a>
+                <a href="/static/auth.html">Register</a>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <a href="/static/admin.html">Admin Panel</a>
+                <a href="/static/analytics.html">Analytics</a>
+                <a href="/static/charts.html">Charts</a>
+                <a href="/static/risk.html">Risk Management</a>
+                <a href="/static/bots.html">Trading Bots</a>
+                <a href="/static/notifications.html">Notifications</a>
+                <a href="/static/kyc.html">KYC Verification</a>
+                <a href="/static/payments.html">Payments</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="trading-dashboard" class="trading-container" style="display: none;">
+        <div class="sidebar">
+            <h3>Trading Panel</h3>
+            
+            <div class="trading-form">
+                <div class="form-group">
+                    <label>Order Type</label>
+                    <select id="order-type">
+                        <option value="market">Market</option>
+                        <option value="limit">Limit</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" id="quantity" step="0.0001" placeholder="0.0000">
+                </div>
+                
+                <div class="form-group" id="price-group">
+                    <label>Price</label>
+                    <input type="number" id="price" step="0.01" placeholder="0.00">
+                </div>
+                
+                <div class="btn-group">
+                    <button class="btn btn-buy" onclick="placeOrder('buy')">Buy</button>
+                    <button class="btn btn-sell" onclick="placeOrder('sell')">Sell</button>
+                </div>
+            </div>
+
+            <div>
+                <h4>Balances</h4>
+                <div id="balances-list"></div>
+            </div>
+
+            <div>
+                <h4>Open Orders</h4>
+                <div id="orders-list"></div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="symbol-selector">
+                <button class="symbol-btn active" onclick="selectSymbol('BTCUSDT')">BTC/USDT</button>
+                <button class="symbol-btn" onclick="selectSymbol('ETHUSDT')">ETH/USDT</button>
+                <button class="symbol-btn" onclick="selectSymbol('ADAUSDT')">ADA/USDT</button>
+                <button class="symbol-btn" onclick="selectSymbol('DOTUSDT')">DOT/USDT</button>
+            </div>
+
+            <div class="price-ticker">
+                <div class="price-info">
+                    <h2 id="current-price">$0.00</h2>
+                    <div id="symbol-name">BTC/USDT</div>
+                </div>
+                <div class="price-change" id="price-change">+0.00%</div>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-placeholder">
+                    📈 Advanced Charts Coming Soon
+                    <br>
+                    <small>TradingView Integration</small>
+                    <br><br>
+                    <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                        <a href="/static/charts.html" style="color: #0084ff; text-decoration: none; padding: 10px 20px; background: rgba(0, 132, 255, 0.1); border-radius: 5px; border: 1px solid #0084ff;">📊 Advanced Charts</a>
+                        <a href="/static/analytics.html" style="color: #0084ff; text-decoration: none; padding: 10px 20px; background: rgba(0, 132, 255, 0.1); border-radius: 5px; border: 1px solid #0084ff;">📈 Analytics</a>
+                        <a href="/static/risk.html" style="color: #0084ff; text-decoration: none; padding: 10px 20px; background: rgba(0, 132, 255, 0.1); border-radius: 5px; border: 1px solid #0084ff;">⚠️ Risk Management</a>
+                        <a href="/static/bots.html" style="color: #0084ff; text-decoration: none; padding: 10px 20px; background: rgba(0, 132, 255, 0.1); border-radius: 5px; border: 1px solid #0084ff;">🤖 Trading Bots</a>
+                        <a href="/static/notifications.html" style="color: #0084ff; text-decoration: none; padding: 10px 20px; background: rgba(0, 132, 255, 0.1); border-radius: 5px; border: 1px solid #0084ff;">🔔 Notifications</a>
+                        <a href="/static/kyc.html" style="color: #0084ff; text-decoration: none; padding: 10px 20px; background: rgba(0, 132, 255, 0.1); border-radius: 5px; border: 1px solid #0084ff;">🔐 KYC Verification</a>
+                        <a href="/static/payments.html" style="color: #0084ff; text-decoration: none; padding: 10px 20px; background: rgba(0, 132, 255, 0.1); border-radius: 5px; border: 1px solid #0084ff;">💳 Payments</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="orderbook-container">
+                <div class="orderbook">
+                    <div class="orderbook-header">
+                        <h4>Order Book</h4>
+                        <span id="spread-info">Spread: $0.00</span>
+                    </div>
+                    
+                    <table class="orderbook-table">
+                        <thead>
+                            <tr>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderbook-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8002/api/v1';
+        const WS_BASE = 'ws://localhost:8002/ws';
+        let currentToken = localStorage.getItem('auth_token');
+        let currentSymbol = 'BTCUSDT';
+        let priceWs = null;
+        let orderbookWs = null;
+
+        if (currentToken) {
+            checkAuth();
+        } else {
+            showLoginPrompt();
+        }
+
+        function showLoginPrompt() {
+            document.getElementById('login-prompt').style.display = 'flex';
+            document.getElementById('trading-dashboard').style.display = 'none';
+        }
+
+        function showTradingDashboard() {
+            document.getElementById('login-prompt').style.display = 'none';
+            document.getElementById('trading-dashboard').style.display = 'grid';
+            initializeDashboard();
+        }
+
+        async function checkAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/auth/profile`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (response.ok) {
+                    showTradingDashboard();
+                } else {
+                    showLoginPrompt();
+                }
+            } catch (error) {
+                showLoginPrompt();
+            }
+        }
+
+        function initializeDashboard() {
+            loadBalances();
+            loadOrders();
+            connectWebSockets();
+            
+            document.getElementById('order-type').addEventListener('change', function() {
+                const priceGroup = document.getElementById('price-group');
+                if (this.value === 'market') {
+                    priceGroup.style.display = 'none';
+                } else {
+                    priceGroup.style.display = 'block';
+                }
+            });
+        }
+
+        function connectWebSockets() {
+            if (priceWs) priceWs.close();
+            if (orderbookWs) orderbookWs.close();
+
+            priceWs = new WebSocket(`${WS_BASE}/prices/${currentSymbol}`);
+            priceWs.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                updatePriceTicker(data);
+            };
+
+            orderbookWs = new WebSocket(`${WS_BASE}/orderbook/${currentSymbol}`);
+            orderbookWs.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                updateOrderBook(data);
+            };
+        }
+
+        function updatePriceTicker(data) {
+            document.getElementById('current-price').textContent = `$${parseFloat(data.price).toFixed(2)}`;
+            const changeElement = document.getElementById('price-change');
+            const change = parseFloat(data.change_24h || 0);
+            changeElement.textContent = `${change > 0 ? '+' : ''}${change.toFixed(2)}%`;
+            changeElement.className = `price-change ${change >= 0 ? 'positive' : 'negative'}`;
+        }
+
+        function updateOrderBook(data) {
+            const tbody = document.getElementById('orderbook-body');
+            let html = '';
+            
+            // Asks (sell orders) - reverse order
+            const asks = data.asks.slice(0, 10).reverse();
+            asks.forEach(ask => {
+                html += `
+                    <tr class="ask-row">
+                        <td class="ask-price">$${ask.price}</td>
+                        <td>${ask.quantity}</td>
+                        <td>$${ask.total}</td>
+                    </tr>
+                `;
+            });
+            
+            // Spread
+            html += `
+                <tr>
+                    <td colspan="3" class="spread-info">
+                        Spread: $${data.spread} (${data.spread_percent}%)
+                    </td>
+                </tr>
+            `;
+            
+            // Bids (buy orders)
+            const bids = data.bids.slice(0, 10);
+            bids.forEach(bid => {
+                html += `
+                    <tr class="bid-row">
+                        <td class="bid-price">$${bid.price}</td>
+                        <td>${bid.quantity}</td>
+                        <td>$${bid.total}</td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+            document.getElementById('spread-info').textContent = `Spread: $${data.spread}`;
+        }
+
+        function selectSymbol(symbol) {
+            currentSymbol = symbol;
+            document.getElementById('symbol-name').textContent = symbol;
+            
+            document.querySelectorAll('.symbol-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            connectWebSockets();
+        }
+
+        async function loadBalances() {
+            try {
+                const response = await fetch(`${API_BASE}/wallet/balances`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateBalancesList(data.balances);
+                }
+            } catch (error) {
+                console.error('Failed to load balances:', error);
+            }
+        }
+
+        function updateBalancesList(balances) {
+            const balancesList = document.getElementById('balances-list');
+            let html = '<table class="positions-table"><thead><tr><th>Asset</th><th>Available</th></tr></thead><tbody>';
+            
+            Object.entries(balances).forEach(([currency, balance]) => {
+                if (balance.available > 0) {
+                    html += `
+                        <tr>
+                            <td>${currency}</td>
+                            <td>${balance.available.toFixed(4)}</td>
+                        </tr>
+                    `;
+                }
+            });
+            
+            html += '</tbody></table>';
+            balancesList.innerHTML = html;
+        }
+
+        async function loadOrders() {
+            try {
+                const response = await fetch(`${API_BASE}/trading/orders`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateOrdersList(data.orders);
+                }
+            } catch (error) {
+                console.error('Failed to load orders:', error);
+            }
+        }
+
+        function updateOrdersList(orders) {
+            const ordersList = document.getElementById('orders-list');
+            let html = '<table class="positions-table"><thead><tr><th>Symbol</th><th>Side</th><th>Status</th></tr></thead><tbody>';
+            
+            orders.slice(-5).forEach(order => {
+                html += `
+                    <tr>
+                        <td>${order.symbol}</td>
+                        <td>${order.side}</td>
+                        <td><span class="status-badge status-${order.status}">${order.status}</span></td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            ordersList.innerHTML = html;
+        }
+
+        async function placeOrder(side) {
+            const orderType = document.getElementById('order-type').value;
+            const quantity = parseFloat(document.getElementById('quantity').value);
+            const price = orderType === 'limit' ? parseFloat(document.getElementById('price').value) : null;
+            
+            if (!quantity || quantity <= 0) {
+                alert('Please enter a valid quantity');
+                return;
+            }
+            
+            if (orderType === 'limit' && (!price || price <= 0)) {
+                alert('Please enter a valid price');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/trading/orders`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        symbol: currentSymbol,
+                        side: side,
+                        type: orderType,
+                        quantity: quantity,
+                        price: price
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Order placed successfully! Order ID: ${data.order.id}`);
+                    document.getElementById('quantity').value = '';
+                    document.getElementById('price').value = '';
+                    loadOrders();
+                    loadBalances();
+                } else {
+                    const error = await response.json();
+                    alert(`Order failed: ${error.detail}`);
+                }
+            } catch (error) {
+                alert('Failed to place order');
+            }
+        }
+    </script>
+</body>
+</html>
